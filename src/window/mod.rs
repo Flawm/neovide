@@ -271,7 +271,7 @@ impl GlutinWindowWrapper {
     }
 }
 
-pub fn create_window() {
+pub fn create_window(vsync: bool) {
     let icon = {
         let icon = load_from_memory(ICON).expect("Failed to parse icon data");
         let (width, height) = icon.dimensions();
@@ -342,14 +342,24 @@ pub fn create_window() {
             cmd_line_settings.x11_wm_class,
         );
 
-    let windowed_context = ContextBuilder::new()
+    let windowed_context = match ContextBuilder::new()
         .with_pixel_format(24, 8)
         .with_stencil_buffer(8)
         .with_gl_profile(GlProfile::Core)
-        .with_vsync(false)
+        .with_vsync(vsync)
         .with_srgb(cmd_line_settings.srgb)
         .build_windowed(winit_window_builder, &event_loop)
-        .unwrap();
+    {
+        Ok(_r) => _r,
+        Err(e) => {
+            if e.to_string().contains("available vsync extension") {
+                create_window(true);
+                return;
+            }
+            panic!("{}", e);
+        }
+    };
+
     let windowed_context = unsafe { windowed_context.make_current().unwrap() };
 
     let window = windowed_context.window();

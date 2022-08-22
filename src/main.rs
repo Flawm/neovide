@@ -141,7 +141,7 @@ fn main() {
 
     start_bridge();
     start_editor();
-    create_window();
+    create_window(false);
 }
 
 #[cfg(not(test))]
